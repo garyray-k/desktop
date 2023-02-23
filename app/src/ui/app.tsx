@@ -165,6 +165,7 @@ import { enableStackedPopups } from '../lib/feature-flag'
 import { DialogStackContext } from './dialog'
 import { TestNotifications } from './test-notifications/test-notifications'
 import { NotificationsDebugStore } from '../lib/stores/notifications-debug-store'
+import { RemoteManagerButton } from './toolbar/remote-manager-button'
 
 const MinuteInMilliseconds = 1000 * 60
 const HourInMilliseconds = MinuteInMilliseconds * 60
@@ -2852,6 +2853,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private renderRemoteManagerToolbarButton = () => {
+    const selection = this.state.selectedState
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return null
+    }
+    const currentFoldout = this.state.currentFoldout
+    const isDropdownOpen =
+      currentFoldout !== null &&
+      currentFoldout.type === FoldoutType.RemoteManager
+    return (
+      <RemoteManagerButton
+        dispatcher={this.props.dispatcher}
+        repository={selection.repository}
+        isDropdownOpen={isDropdownOpen}
+        onDropdownStateChanged={this.onRemoteManagerDropdownStateChanged}
+      />
+    )
+  }
+
   private showCreateBranch = () => {
     const selection = this.state.selectedState
 
@@ -2909,6 +2929,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     branch: Branch
   ) => {
     this.props.dispatcher.openCreatePullRequestInBrowser(repository, branch)
+  }
+
+  private onRemoteManagerDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.RemoteManager })
+    } else {
+      this.props.dispatcher.closeFoldout(FoldoutType.RemoteManager)
+    }
   }
 
   private onPushPullDropdownStateChanged = (newState: DropdownState) => {
@@ -3033,6 +3061,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
+        {this.renderRemoteManagerToolbarButton()}
       </Toolbar>
     )
   }
